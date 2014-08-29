@@ -9,8 +9,36 @@
     tools:context=".MainActivity">
 
     <TextView
-        android:text="@string/hello_world"
+        android:text="@string/lbl_device_address"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:id="@+id/lbl_device_address" />
+    <TextView
+        android:text="@string/device_address"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/lbl_device_address"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:id="@+id/device_address" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_connected_status"
+        android:id="@+id/lbl_connected_status"
+        android:layout_marginTop="26dp"
+        android:layout_below="@+id/device_address"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/connected_status"
+        android:id="@+id/connected_status"
+        android:layout_below="@+id/lbl_connected_status"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
 </RelativeLayout>

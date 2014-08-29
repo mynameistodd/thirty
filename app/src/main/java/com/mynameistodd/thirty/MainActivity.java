@@ -7,11 +7,13 @@ import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -25,11 +27,14 @@ public class MainActivity extends Activity {
     private static final int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter mBluetoothAdapter = null;
 
+    private TextView deviceAddress;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
         setContentView(R.layout.activity_main);
+        deviceAddress = (TextView) findViewById(R.id.device_address);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -70,10 +75,15 @@ public class MainActivity extends Activity {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
-                    //int position = ((AlertDialog)dialog).getListView().getCheckedItemPosition();
-                    //String address = devices.get(position);
+
                     String address = devices.get(which);
                     Toast.makeText(mContext, address, Toast.LENGTH_SHORT).show();
+                    deviceAddress.setText(address);
+
+                    SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    editor.putString("device", address);
+                    editor.commit();
                 }
             });
             dialog.setTitle("Choose a paired device.");
