@@ -8,5 +8,6 @@
     <string name="device_address">00:00:00:00:00:00</string>
     <string name="lbl_connected_status">Connected:</string>
     <string name="connected_status">Not Connected</string>
+    <string name="connect">Connect</string>
 
 </resources>

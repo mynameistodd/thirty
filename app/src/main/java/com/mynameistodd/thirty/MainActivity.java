@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,13 +13,17 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 
 public class MainActivity extends Activity {
@@ -28,6 +33,8 @@ public class MainActivity extends Activity {
     private BluetoothAdapter mBluetoothAdapter = null;
 
     private TextView deviceAddress;
+    private TextView connectedStatus;
+    private Button connect;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +42,8 @@ public class MainActivity extends Activity {
         mContext = this;
         setContentView(R.layout.activity_main);
         deviceAddress = (TextView) findViewById(R.id.device_address);
+        connectedStatus = (TextView) findViewById(R.id.connected_status);
+        connect = (Button) findViewById(R.id.connect);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -88,6 +97,32 @@ public class MainActivity extends Activity {
             });
             dialog.setTitle("Choose a paired device.");
             dialog.show();
+
+            connect.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    SharedPreferences prefs = getPreferences(MODE_PRIVATE);
+                    String deviceAddress = prefs.getString("device", "");
+                    if (deviceAddress != "") {
+                        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
+                        UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+                        BluetoothSocket socket;
+                        try {
+                            socket = device.createInsecureRfcommSocketToServiceRecord(uuid);
+                            socket.connect();
+
+                            if (socket.isConnected()) {
+                                connectedStatus.setText("Connected!");
+                                connect.setText("Disconnect");
+                            }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+
+                    }
+
+                }
+            });
         }
     }
 
