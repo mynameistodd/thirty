@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     private Context mContext = null;
     private static final int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter mBluetoothAdapter = null;
+    private BluetoothSocket socket;
 
     private TextView deviceAddress;
     private TextView connectedStatus;
@@ -103,22 +104,34 @@ public class MainActivity extends Activity {
                 public void onClick(View v) {
                     SharedPreferences prefs = getPreferences(MODE_PRIVATE);
                     String deviceAddress = prefs.getString("device", "");
+
                     if (deviceAddress != "") {
-                        BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
-                        UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-                        BluetoothSocket socket;
-                        try {
-                            socket = device.createInsecureRfcommSocketToServiceRecord(uuid);
-                            socket.connect();
-
-                            if (socket.isConnected()) {
-                                connectedStatus.setText("Connected!");
-                                connect.setText("Disconnect");
+                        if (socket != null && socket.isConnected()) {
+                            try {
+                                socket.close();
+                                connectedStatus.setText("Not Connected");
+                                connect.setText("Connect");
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
-                        } catch (IOException e) {
-                            e.printStackTrace();
                         }
+                        else {
+                            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
+                            UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
+
+                            try {
+                                socket = device.createInsecureRfcommSocketToServiceRecord(uuid);
+                                socket.connect();
+
+                                if (socket.isConnected()) {
+                                    connectedStatus.setText("Connected!");
+                                    connect.setText("Disconnect");
+                                }
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
                     }
 
                 }
