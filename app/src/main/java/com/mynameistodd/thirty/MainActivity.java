@@ -25,9 +25,19 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import pt.lighthouselabs.obd.commands.SpeedObdCommand;
+import pt.lighthouselabs.obd.commands.engine.ThrottlePositionObdCommand;
+import pt.lighthouselabs.obd.commands.protocol.EchoOffObdCommand;
+import pt.lighthouselabs.obd.commands.protocol.LineFeedOffObdCommand;
+import pt.lighthouselabs.obd.commands.protocol.ObdResetCommand;
+import pt.lighthouselabs.obd.commands.protocol.SelectProtocolObdCommand;
+import pt.lighthouselabs.obd.commands.protocol.TimeoutObdCommand;
+import pt.lighthouselabs.obd.enums.ObdProtocols;
+
 
 public class MainActivity extends Activity {
 
+    private String TAG = "MYNAMEISTODD";
     private Context mContext = null;
     private static final int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter mBluetoothAdapter = null;
@@ -119,7 +129,6 @@ public class MainActivity extends Activity {
                             BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
                             UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-
                             try {
                                 socket = device.createInsecureRfcommSocketToServiceRecord(uuid);
                                 socket.connect();
@@ -127,6 +136,26 @@ public class MainActivity extends Activity {
                                 if (socket.isConnected()) {
                                     connectedStatus.setText("Connected!");
                                     connect.setText("Disconnect");
+
+                                    try {
+                                        new ObdResetCommand().run(socket.getInputStream(), socket.getOutputStream());
+                                        new EchoOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
+                                        new LineFeedOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
+                                        //new TimeoutObdCommand(60).run(socket.getInputStream(), socket.getOutputStream());
+                                        new SelectProtocolObdCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
+
+                                        SpeedObdCommand speed = new SpeedObdCommand();
+                                        ThrottlePositionObdCommand throttlePosition = new ThrottlePositionObdCommand();
+
+                                        speed.run(socket.getInputStream(), socket.getOutputStream());
+                                        throttlePosition.run(socket.getInputStream(), socket.getOutputStream());
+
+                                        Log.d(TAG, "Speed: " + speed.getImperialSpeed());
+                                        Log.d(TAG, "Throttle: " + throttlePosition.getPercentage());
+
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             } catch (IOException e) {
                                 e.printStackTrace();
