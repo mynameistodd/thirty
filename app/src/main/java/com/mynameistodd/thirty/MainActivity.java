@@ -45,7 +45,10 @@ public class MainActivity extends Activity {
 
     private TextView deviceAddress;
     private TextView connectedStatus;
+    private TextView speed;
+    private TextView throttlePosition;
     private Button connect;
+    private Button refresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,12 +57,15 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         deviceAddress = (TextView) findViewById(R.id.device_address);
         connectedStatus = (TextView) findViewById(R.id.connected_status);
+        speed = (TextView) findViewById(R.id.speed);
+        throttlePosition = (TextView) findViewById(R.id.throttle_position);
         connect = (Button) findViewById(R.id.connect);
+        refresh = (Button) findViewById(R.id.refresh);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         if (mBluetoothAdapter == null) {
-            Toast.makeText(this, "Bluetooth is not available", Toast.LENGTH_LONG).show();
+            Toast.makeText(mContext, "Bluetooth is not available", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -144,14 +150,17 @@ public class MainActivity extends Activity {
                                         //new TimeoutObdCommand(60).run(socket.getInputStream(), socket.getOutputStream());
                                         new SelectProtocolObdCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
 
-                                        SpeedObdCommand speed = new SpeedObdCommand();
-                                        ThrottlePositionObdCommand throttlePosition = new ThrottlePositionObdCommand();
-
-                                        speed.run(socket.getInputStream(), socket.getOutputStream());
-                                        throttlePosition.run(socket.getInputStream(), socket.getOutputStream());
-
-                                        Log.d(TAG, "Speed: " + speed.getImperialSpeed());
-                                        Log.d(TAG, "Throttle: " + throttlePosition.getPercentage());
+//                                        SpeedObdCommand speedCmd = new SpeedObdCommand();
+//                                        ThrottlePositionObdCommand throttlePositionCmd = new ThrottlePositionObdCommand();
+//
+//                                        speedCmd.run(socket.getInputStream(), socket.getOutputStream());
+//                                        throttlePositionCmd.run(socket.getInputStream(), socket.getOutputStream());
+//
+//                                        Log.d(TAG, "Speed: " + speedCmd.getImperialSpeed());
+//                                        Log.d(TAG, "Throttle: " + throttlePositionCmd.getPercentage());
+//
+//                                        speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
+//                                        throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
 
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
@@ -165,6 +174,37 @@ public class MainActivity extends Activity {
 
                 }
             });
+
+            refresh.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (socket.isConnected()) {
+                        connectedStatus.setText("Connected!");
+                        connect.setText("Disconnect");
+
+                        try {
+                            SpeedObdCommand speedCmd = new SpeedObdCommand();
+                            ThrottlePositionObdCommand throttlePositionCmd = new ThrottlePositionObdCommand();
+
+                            speedCmd.run(socket.getInputStream(), socket.getOutputStream());
+                            throttlePositionCmd.run(socket.getInputStream(), socket.getOutputStream());
+
+                            Log.d(TAG, "Speed: " + speedCmd.getImperialSpeed());
+                            Log.d(TAG, "Throttle: " + throttlePositionCmd.getPercentage());
+
+                            speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
+                            throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
+
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        Toast.makeText(mContext, "Connect socket first!", Toast.LENGTH_LONG).show();
+                    }
+                }
+            });
         }
     }
 
@@ -175,7 +215,7 @@ public class MainActivity extends Activity {
             case REQUEST_ENABLE_BT:
                 if (resultCode == Activity.RESULT_OK) {
                 } else {
-                    Toast.makeText(this, "Bluetooth is not enabled, exiting.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(mContext, "Bluetooth is not enabled, exiting.", Toast.LENGTH_SHORT).show();
                     finish();
                 }
                 break;

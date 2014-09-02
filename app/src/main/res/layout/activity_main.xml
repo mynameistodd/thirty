@@ -41,17 +41,62 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_speed"
+        android:id="@+id/lbl_speed"
+        android:layout_marginTop="26dp"
+        android:layout_below="@+id/connected_status"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/speed"
+        android:id="@+id/speed"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lbl_speed"
+        android:layout_alignParentLeft="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_throttle_position"
+        android:id="@+id/lbl_throttle_position"
+        android:layout_marginTop="26dp"
+        android:layout_below="@+id/speed"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/throttle_position"
+        android:id="@+id/throttle_position"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lbl_throttle_position"
+        android:layout_alignParentLeft="true" />
+
     <Button
         style="?android:attr/buttonStyleSmall"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/connect"
         android:id="@+id/connect"
-        android:layout_below="@+id/connected_status"
+        android:layout_below="@+id/throttle_position"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:layout_marginTop="27dp"
-        android:layout_alignRight="@+id/device_address"
-        android:layout_alignEnd="@+id/device_address" />
+        android:layout_marginTop="26dp" />
+
+    <Button
+        style="?android:attr/buttonStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/refresh"
+        android:id="@+id/refresh"
+        android:layout_alignBottom="@+id/connect"
+        android:layout_toRightOf="@+id/connect" />
 
 </RelativeLayout>
