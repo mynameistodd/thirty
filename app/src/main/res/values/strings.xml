@@ -12,6 +12,9 @@
     <string name="speed">Unknown</string>
     <string name="lbl_throttle_position">Throttle Position:</string>
     <string name="throttle_position">Unknown</string>
+    <string name="lbl_dtc">DTCs:</string>
+    <string name="dtc">Unknown</string>
+
     <string name="connect">Connect</string>
     <string name="refresh">Refresh</string>
 

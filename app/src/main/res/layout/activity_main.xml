@@ -99,4 +99,22 @@
         android:layout_alignBottom="@+id/connect"
         android:layout_toRightOf="@+id/connect" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_dtc"
+        android:id="@+id/lbl_dtc"
+        android:layout_alignBottom="@+id/lbl_speed"
+        android:layout_toRightOf="@+id/refresh"
+        android:layout_marginLeft="51dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/dtc"
+        android:id="@+id/dtc"
+        android:layout_below="@+id/lbl_dtc"
+        android:layout_alignLeft="@+id/lbl_dtc"
+        android:layout_alignStart="@+id/lbl_dtc" />
+
 </RelativeLayout>

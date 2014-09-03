@@ -26,13 +26,16 @@ import java.util.Set;
 import java.util.UUID;
 
 import pt.lighthouselabs.obd.commands.SpeedObdCommand;
+import pt.lighthouselabs.obd.commands.control.DtcNumberObdCommand;
 import pt.lighthouselabs.obd.commands.engine.ThrottlePositionObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.EchoOffObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.LineFeedOffObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.ObdResetCommand;
+import pt.lighthouselabs.obd.commands.protocol.OdbRawCommand;
 import pt.lighthouselabs.obd.commands.protocol.SelectProtocolObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.TimeoutObdCommand;
 import pt.lighthouselabs.obd.enums.ObdProtocols;
+import pt.lighthouselabs.obd.exceptions.NoDataException;
 
 
 public class MainActivity extends Activity {
@@ -47,6 +50,7 @@ public class MainActivity extends Activity {
     private TextView connectedStatus;
     private TextView speed;
     private TextView throttlePosition;
+    private TextView dtcs;
     private Button connect;
     private Button refresh;
 
@@ -59,6 +63,7 @@ public class MainActivity extends Activity {
         connectedStatus = (TextView) findViewById(R.id.connected_status);
         speed = (TextView) findViewById(R.id.speed);
         throttlePosition = (TextView) findViewById(R.id.throttle_position);
+        dtcs = (TextView) findViewById(R.id.dtc);
         connect = (Button) findViewById(R.id.connect);
         refresh = (Button) findViewById(R.id.refresh);
 
@@ -136,6 +141,7 @@ public class MainActivity extends Activity {
                             UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
                             try {
+                                mBluetoothAdapter.cancelDiscovery();
                                 socket = device.createInsecureRfcommSocketToServiceRecord(uuid);
                                 socket.connect();
 
@@ -147,21 +153,7 @@ public class MainActivity extends Activity {
                                         new ObdResetCommand().run(socket.getInputStream(), socket.getOutputStream());
                                         new EchoOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
                                         new LineFeedOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
-                                        //new TimeoutObdCommand(60).run(socket.getInputStream(), socket.getOutputStream());
                                         new SelectProtocolObdCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
-
-//                                        SpeedObdCommand speedCmd = new SpeedObdCommand();
-//                                        ThrottlePositionObdCommand throttlePositionCmd = new ThrottlePositionObdCommand();
-//
-//                                        speedCmd.run(socket.getInputStream(), socket.getOutputStream());
-//                                        throttlePositionCmd.run(socket.getInputStream(), socket.getOutputStream());
-//
-//                                        Log.d(TAG, "Speed: " + speedCmd.getImperialSpeed());
-//                                        Log.d(TAG, "Throttle: " + throttlePositionCmd.getPercentage());
-//
-//                                        speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
-//                                        throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
-
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -185,15 +177,36 @@ public class MainActivity extends Activity {
                         try {
                             SpeedObdCommand speedCmd = new SpeedObdCommand();
                             ThrottlePositionObdCommand throttlePositionCmd = new ThrottlePositionObdCommand();
+                            DtcNumberObdCommand dtcCmd = new DtcNumberObdCommand();
+                            OdbRawCommand rawCmd = new OdbRawCommand("09 02");
 
                             speedCmd.run(socket.getInputStream(), socket.getOutputStream());
                             throttlePositionCmd.run(socket.getInputStream(), socket.getOutputStream());
 
+                            String dtcFormattedResult = "None";
+                            try {
+                                dtcCmd.run(socket.getInputStream(), socket.getOutputStream());
+                                dtcFormattedResult = dtcCmd.getFormattedResult();
+                            } catch (NoDataException e) {
+                                e.printStackTrace();
+                            }
+
+                            String rawFormattedResult = "Unknown";
+                            try {
+                                rawCmd.run(socket.getInputStream(), socket.getOutputStream());
+                                rawFormattedResult = rawCmd.getFormattedResult();
+                            } catch (NoDataException e) {
+                                e.printStackTrace();
+                            }
+
                             Log.d(TAG, "Speed: " + speedCmd.getImperialSpeed());
                             Log.d(TAG, "Throttle: " + throttlePositionCmd.getPercentage());
+                            Log.d(TAG, "DTCs: " + dtcFormattedResult);
+                            Log.d(TAG, "VIN: " + rawFormattedResult);
 
                             speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
                             throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
+                            dtcs.setText(String.valueOf(dtcFormattedResult));
 
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -205,6 +218,17 @@ public class MainActivity extends Activity {
                     }
                 }
             });
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+
+        try {
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
