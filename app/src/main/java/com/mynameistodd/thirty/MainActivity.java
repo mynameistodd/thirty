@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -19,8 +20,14 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
+import com.parse.ParseException;
+import com.parse.ParseQuery;
+import com.parse.SaveCallback;
+
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -42,6 +49,7 @@ public class MainActivity extends Activity {
 
     private String TAG = "MYNAMEISTODD";
     private Context mContext = null;
+    private SharedPreferences prefs;
     private static final int REQUEST_ENABLE_BT = 1;
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothSocket socket;
@@ -58,6 +66,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mContext = this;
+        prefs = PreferenceManager.getDefaultSharedPreferences(getApplication());
         setContentView(R.layout.activity_main);
         deviceAddress = (TextView) findViewById(R.id.device_address);
         connectedStatus = (TextView) findViewById(R.id.connected_status);
@@ -91,13 +100,13 @@ public class MainActivity extends Activity {
         super.onResume();
 
         List<String> deviceStr = new ArrayList<String>();
-        final List<String> devices = new ArrayList<String>();
+        final List<BluetoothDevice> devices = new ArrayList<BluetoothDevice>();
 
         Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 deviceStr.add(device.getName() + "\n" + device.getAddress());
-                devices.add(device.getAddress());
+                devices.add(device);
             }
 
             ArrayAdapter adapter = new ArrayAdapter(mContext, android.R.layout.select_dialog_singlechoice, deviceStr);
@@ -107,14 +116,41 @@ public class MainActivity extends Activity {
                 public void onClick(DialogInterface dialog, int which) {
                     dialog.dismiss();
 
-                    String address = devices.get(which);
+                    final BluetoothDevice selectedDevice = devices.get(which);
+                    String address = selectedDevice.getAddress();
                     Toast.makeText(mContext, address, Toast.LENGTH_SHORT).show();
                     deviceAddress.setText(address);
 
-                    SharedPreferences prefs = getPreferences(MODE_PRIVATE);
                     SharedPreferences.Editor editor = prefs.edit();
                     editor.putString("device", address);
-                    editor.commit();
+                    editor.apply();
+
+                    //this probably needs to be somewhere else
+                    ParseQuery<Device> query = ParseQuery.getQuery(Device.class);
+                    query.whereEqualTo("address", address);
+                    query.setCachePolicy(ParseQuery.CachePolicy.CACHE_ELSE_NETWORK);
+                    query.findInBackground(new FindCallback<Device>() {
+                        @Override
+                        public void done(List<Device> devices, ParseException e) {
+                            final Device myDevice; //needs to be somewhere accessible to everything.
+
+                            if (devices.size() > 0) {
+                                myDevice = devices.get(0);
+                                saveDeviceObjectId(myDevice.getObjectId());
+                            } else {
+                                myDevice = new Device();
+                                myDevice.setName(selectedDevice.getName());
+                                myDevice.setAddress(selectedDevice.getAddress());
+                                myDevice.setCapturedAt(new Date());
+                                myDevice.saveInBackground(new SaveCallback() {
+                                    @Override
+                                    public void done(ParseException e) {
+                                        saveDeviceObjectId(myDevice.getObjectId());
+                                    }
+                                });
+                            }
+                        }
+                    });
                 }
             });
             dialog.setTitle("Choose a paired device.");
@@ -123,7 +159,6 @@ public class MainActivity extends Activity {
             connect.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    SharedPreferences prefs = getPreferences(MODE_PRIVATE);
                     String deviceAddress = prefs.getString("device", "");
 
                     if (deviceAddress != "") {
@@ -154,6 +189,7 @@ public class MainActivity extends Activity {
                                         new EchoOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
                                         new LineFeedOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
                                         new SelectProtocolObdCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
+                                        refresh();
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -170,54 +206,58 @@ public class MainActivity extends Activity {
             refresh.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if (socket.isConnected()) {
-                        connectedStatus.setText("Connected!");
-                        connect.setText("Disconnect");
-
-                        try {
-                            SpeedObdCommand speedCmd = new SpeedObdCommand();
-                            ThrottlePositionObdCommand throttlePositionCmd = new ThrottlePositionObdCommand();
-                            DtcNumberObdCommand dtcCmd = new DtcNumberObdCommand();
-                            OdbRawCommand rawCmd = new OdbRawCommand("09 02");
-
-                            speedCmd.run(socket.getInputStream(), socket.getOutputStream());
-                            throttlePositionCmd.run(socket.getInputStream(), socket.getOutputStream());
-
-                            String dtcFormattedResult = "None";
-                            try {
-                                dtcCmd.run(socket.getInputStream(), socket.getOutputStream());
-                                dtcFormattedResult = dtcCmd.getFormattedResult();
-                            } catch (NoDataException e) {
-                                e.printStackTrace();
-                            }
-
-                            String rawFormattedResult = "Unknown";
-                            try {
-                                rawCmd.run(socket.getInputStream(), socket.getOutputStream());
-                                rawFormattedResult = rawCmd.getFormattedResult();
-                            } catch (NoDataException e) {
-                                e.printStackTrace();
-                            }
-
-                            Log.d(TAG, "Speed: " + speedCmd.getImperialSpeed());
-                            Log.d(TAG, "Throttle: " + throttlePositionCmd.getPercentage());
-                            Log.d(TAG, "DTCs: " + dtcFormattedResult);
-                            Log.d(TAG, "VIN: " + rawFormattedResult);
-
-                            speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
-                            throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
-                            dtcs.setText(String.valueOf(dtcFormattedResult));
-
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        Toast.makeText(mContext, "Connect socket first!", Toast.LENGTH_LONG).show();
-                    }
+                    refresh();
                 }
             });
+        }
+    }
+
+    private void refresh() {
+        if (socket != null && socket.isConnected()) {
+            connectedStatus.setText("Connected!");
+            connect.setText("Disconnect");
+
+            try {
+                SpeedObdCommand speedCmd = new SpeedObdCommand();
+                ThrottlePositionObdCommand throttlePositionCmd = new ThrottlePositionObdCommand();
+                DtcNumberObdCommand dtcCmd = new DtcNumberObdCommand();
+                OdbRawCommand rawCmd = new OdbRawCommand("09 02");
+
+                speedCmd.run(socket.getInputStream(), socket.getOutputStream());
+                throttlePositionCmd.run(socket.getInputStream(), socket.getOutputStream());
+
+                String dtcFormattedResult = "None";
+                try {
+                    dtcCmd.run(socket.getInputStream(), socket.getOutputStream());
+                    dtcFormattedResult = dtcCmd.getFormattedResult();
+                } catch (NoDataException e) {
+                    e.printStackTrace();
+                }
+
+                String rawFormattedResult = "Unknown";
+                try {
+                    rawCmd.run(socket.getInputStream(), socket.getOutputStream());
+                    rawFormattedResult = rawCmd.getFormattedResult();
+                } catch (NoDataException e) {
+                    e.printStackTrace();
+                }
+
+                Log.d(TAG, "Speed: " + speedCmd.getImperialSpeed());
+                Log.d(TAG, "Throttle: " + throttlePositionCmd.getPercentage());
+                Log.d(TAG, "DTCs: " + dtcFormattedResult);
+                Log.d(TAG, "VIN: " + rawFormattedResult);
+
+                speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
+                throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
+                dtcs.setText(String.valueOf(dtcFormattedResult));
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            Toast.makeText(mContext, "Connect socket first!", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -226,7 +266,10 @@ public class MainActivity extends Activity {
         super.onPause();
 
         try {
-            socket.close();
+            if (socket != null) {
+                socket.close();
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -263,5 +306,11 @@ public class MainActivity extends Activity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void saveDeviceObjectId(String deviceObjectId) {
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString("deviceObjectId", deviceObjectId);
+        editor.apply();
     }
 }
