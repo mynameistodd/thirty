@@ -14,6 +14,9 @@ public class ThirtyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         ParseObject.registerSubclass(Device.class);
+        ParseObject.registerSubclass(DiagnosticData.class);
+        Parse.enableLocalDatastore(this);
+        Parse.setLogLevel(Parse.LOG_LEVEL_VERBOSE);
         Parse.initialize(this, "7W9y8Zjy1WHlTdWsL8W8fXu6gkhoTx7839SWELDD", "kaFrcmwHvIoUTjVkO2WArCOIZFMFwebYUtYiIIz9");
     }
 }

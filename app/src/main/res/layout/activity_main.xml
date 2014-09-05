@@ -117,4 +117,22 @@
         android:layout_alignLeft="@+id/lbl_dtc"
         android:layout_alignStart="@+id/lbl_dtc" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_vin"
+        android:id="@+id/lbl_vin"
+        android:layout_alignBottom="@+id/lbl_throttle_position"
+        android:layout_alignLeft="@+id/dtc"
+        android:layout_alignStart="@+id/dtc" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/vin"
+        android:id="@+id/vin"
+        android:layout_alignStart="@+id/lbl_dtc"
+        android:layout_below="@+id/lbl_vin"
+        android:layout_alignLeft="@+id/dtc" />
+
 </RelativeLayout>

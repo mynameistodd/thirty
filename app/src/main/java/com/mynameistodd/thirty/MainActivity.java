@@ -59,6 +59,7 @@ public class MainActivity extends Activity {
     private TextView speed;
     private TextView throttlePosition;
     private TextView dtcs;
+    private TextView vin;
     private Button connect;
     private Button refresh;
 
@@ -73,6 +74,7 @@ public class MainActivity extends Activity {
         speed = (TextView) findViewById(R.id.speed);
         throttlePosition = (TextView) findViewById(R.id.throttle_position);
         dtcs = (TextView) findViewById(R.id.dtc);
+        vin = (TextView) findViewById(R.id.vin);
         connect = (Button) findViewById(R.id.connect);
         refresh = (Button) findViewById(R.id.refresh);
 
@@ -128,7 +130,7 @@ public class MainActivity extends Activity {
                     //this probably needs to be somewhere else
                     ParseQuery<Device> query = ParseQuery.getQuery(Device.class);
                     query.whereEqualTo("address", address);
-                    query.setCachePolicy(ParseQuery.CachePolicy.CACHE_ELSE_NETWORK);
+                    //query.setCachePolicy(ParseQuery.CachePolicy.NETWORK_ELSE_CACHE);
                     query.findInBackground(new FindCallback<Device>() {
                         @Override
                         public void done(List<Device> devices, ParseException e) {
@@ -142,7 +144,7 @@ public class MainActivity extends Activity {
                                 myDevice.setName(selectedDevice.getName());
                                 myDevice.setAddress(selectedDevice.getAddress());
                                 myDevice.setCapturedAt(new Date());
-                                myDevice.saveInBackground(new SaveCallback() {
+                                myDevice.saveEventually(new SaveCallback() {
                                     @Override
                                     public void done(ParseException e) {
                                         saveDeviceObjectId(myDevice.getObjectId());
@@ -250,6 +252,12 @@ public class MainActivity extends Activity {
                 speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
                 throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
                 dtcs.setText(String.valueOf(dtcFormattedResult));
+                vin.setText(String.valueOf(rawFormattedResult));
+
+                sendDiagnosticDataToParse(speedCmd.getName(), String.valueOf(speedCmd.getImperialSpeed()));
+                sendDiagnosticDataToParse(throttlePositionCmd.getName(), String.valueOf(throttlePositionCmd.getPercentage()));
+                sendDiagnosticDataToParse(dtcCmd.getName(), dtcFormattedResult);
+                sendDiagnosticDataToParse("VIN", rawFormattedResult);
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -312,5 +320,18 @@ public class MainActivity extends Activity {
         SharedPreferences.Editor editor = prefs.edit();
         editor.putString("deviceObjectId", deviceObjectId);
         editor.apply();
+    }
+
+    private void sendDiagnosticDataToParse(final String name, final String value) {
+        DiagnosticData dd = new DiagnosticData();
+        dd.setName(name);
+        dd.setValue(value);
+        dd.setCapturedAt(new Date());
+        dd.saveEventually(new SaveCallback() {
+            @Override
+            public void done(ParseException e) {
+                Log.d(TAG, "Saved: " + name + "-" + value);
+            }
+        });
     }
 }
