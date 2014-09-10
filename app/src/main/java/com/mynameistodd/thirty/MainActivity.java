@@ -1,5 +1,6 @@
 package com.mynameistodd.thirty;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -54,14 +55,14 @@ public class MainActivity extends Activity {
     private BluetoothAdapter mBluetoothAdapter = null;
     private BluetoothSocket socket;
 
+    private MenuItem mConnect;
+
     private TextView deviceAddress;
     private TextView connectedStatus;
     private TextView speed;
     private TextView throttlePosition;
     private TextView dtcs;
     private TextView vin;
-    private Button connect;
-    private Button refresh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +76,6 @@ public class MainActivity extends Activity {
         throttlePosition = (TextView) findViewById(R.id.throttle_position);
         dtcs = (TextView) findViewById(R.id.dtc);
         vin = (TextView) findViewById(R.id.vin);
-        connect = (Button) findViewById(R.id.connect);
-        refresh = (Button) findViewById(R.id.refresh);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -157,67 +156,53 @@ public class MainActivity extends Activity {
             });
             dialog.setTitle("Choose a paired device.");
             dialog.show();
+        }
+    }
 
-            connect.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    String deviceAddress = prefs.getString("device", "");
+    private void connect() {
+        String deviceAddress = prefs.getString("device", "");
 
-                    if (deviceAddress != "") {
-                        if (socket != null && socket.isConnected()) {
-                            try {
-                                socket.close();
-                                connectedStatus.setText("Not Connected");
-                                connect.setText("Connect");
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                        else {
-                            BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
-                            UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+        if (deviceAddress != "") {
+            if (socket != null && socket.isConnected()) {
+                try {
+                    socket.close();
+                    connectedStatus.setText("Not Connected");
+                    mConnect.setTitle("Connect");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            else {
+                BluetoothDevice device = mBluetoothAdapter.getRemoteDevice(deviceAddress);
+                UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
-                            try {
-                                mBluetoothAdapter.cancelDiscovery();
-                                socket = device.createInsecureRfcommSocketToServiceRecord(uuid);
-                                socket.connect();
+                try {
+                    mBluetoothAdapter.cancelDiscovery();
+                    socket = device.createInsecureRfcommSocketToServiceRecord(uuid);
+                    socket.connect();
 
-                                if (socket.isConnected()) {
-                                    connectedStatus.setText("Connected!");
-                                    connect.setText("Disconnect");
-
-                                    try {
-                                        new ObdResetCommand().run(socket.getInputStream(), socket.getOutputStream());
-                                        new EchoOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
-                                        new LineFeedOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
-                                        new SelectProtocolObdCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
-                                        refresh();
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            } catch (IOException e) {
-                                e.printStackTrace();
-                            }
+                    if (socket.isConnected()) {
+                        connectedStatus.setText("Connected!");
+                        mConnect.setTitle("Disconnect");
+                        try {
+                            new ObdResetCommand().run(socket.getInputStream(), socket.getOutputStream());
+                            new EchoOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
+                            new LineFeedOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
+                            new SelectProtocolObdCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
+                            refresh();
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
                         }
                     }
-
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            });
-
-            refresh.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    refresh();
-                }
-            });
+            }
         }
     }
 
     private void refresh() {
         if (socket != null && socket.isConnected()) {
-            connectedStatus.setText("Connected!");
-            connect.setText("Disconnect");
 
             try {
                 SpeedObdCommand speedCmd = new SpeedObdCommand();
@@ -301,7 +286,8 @@ public class MainActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
-        return true;
+        mConnect = menu.findItem(R.id.action_connect);
+        return super.onCreateOptionsMenu(menu);
     }
 
     @Override
@@ -309,11 +295,18 @@ public class MainActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            case R.id.action_refresh:
+                refresh();
+                return true;
+            case R.id.action_connect:
+                connect();
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
     private void saveDeviceObjectId(String deviceObjectId) {

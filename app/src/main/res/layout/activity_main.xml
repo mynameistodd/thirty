@@ -79,34 +79,15 @@
         android:layout_below="@+id/lbl_throttle_position"
         android:layout_alignParentLeft="true" />
 
-    <Button
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/connect"
-        android:id="@+id/connect"
-        android:layout_below="@+id/throttle_position"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="26dp" />
-
-    <Button
-        style="?android:attr/buttonStyleSmall"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/refresh"
-        android:id="@+id/refresh"
-        android:layout_alignBottom="@+id/connect"
-        android:layout_toRightOf="@+id/connect" />
-
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/lbl_dtc"
         android:id="@+id/lbl_dtc"
-        android:layout_alignBottom="@+id/lbl_speed"
-        android:layout_toRightOf="@+id/refresh"
-        android:layout_marginLeft="51dp" />
+        android:layout_marginRight="97dp"
+        android:layout_above="@+id/device_address"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <TextView
         android:layout_width="wrap_content"
