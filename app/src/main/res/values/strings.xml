@@ -16,6 +16,10 @@
     <string name="dtc">Unknown</string>
     <string name="lbl_vin">VIN:</string>
     <string name="vin">Unknown</string>
+    <string name="lbl_fuel_economy">Fuel Economy:</string>
+    <string name="fuel_economy">Unknown</string>
+    <string name="lbl_fuel_level">Fuel Level:</string>
+    <string name="fuel_level">Unknown</string>
 
     <string name="connect">Connect</string>
     <string name="refresh">Refresh</string>

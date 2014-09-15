@@ -27,10 +27,8 @@
         android:layout_height="wrap_content"
         android:text="@string/lbl_connected_status"
         android:id="@+id/lbl_connected_status"
-        android:layout_marginTop="26dp"
-        android:layout_below="@+id/device_address"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -38,8 +36,8 @@
         android:text="@string/connected_status"
         android:id="@+id/connected_status"
         android:layout_below="@+id/lbl_connected_status"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -47,7 +45,7 @@
         android:text="@string/lbl_speed"
         android:id="@+id/lbl_speed"
         android:layout_marginTop="26dp"
-        android:layout_below="@+id/connected_status"
+        android:layout_below="@+id/device_address"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
@@ -84,36 +82,75 @@
         android:layout_height="wrap_content"
         android:text="@string/lbl_dtc"
         android:id="@+id/lbl_dtc"
-        android:layout_marginRight="97dp"
-        android:layout_above="@+id/device_address"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_below="@+id/vin"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="33dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/dtc"
         android:id="@+id/dtc"
+        android:layout_alignParentStart="true"
         android:layout_below="@+id/lbl_dtc"
-        android:layout_alignLeft="@+id/lbl_dtc"
-        android:layout_alignStart="@+id/lbl_dtc" />
+        android:layout_alignParentLeft="true" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/lbl_vin"
         android:id="@+id/lbl_vin"
-        android:layout_alignBottom="@+id/lbl_throttle_position"
-        android:layout_alignLeft="@+id/dtc"
-        android:layout_alignStart="@+id/dtc" />
+        android:layout_marginTop="33dp"
+        android:layout_below="@+id/fuel_economy"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/vin"
         android:id="@+id/vin"
-        android:layout_alignStart="@+id/lbl_dtc"
+        android:layout_alignParentStart="true"
         android:layout_below="@+id/lbl_vin"
-        android:layout_alignLeft="@+id/dtc" />
+        android:layout_alignParentLeft="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_fuel_economy"
+        android:id="@+id/lbl_fuel_economy"
+        android:layout_below="@+id/throttle_position"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="42dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/fuel_economy"
+        android:id="@+id/fuel_economy"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lbl_fuel_economy"
+        android:layout_alignParentLeft="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/lbl_fuel_level"
+        android:id="@+id/lbl_fuel_level"
+        android:layout_below="@+id/dtc"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="25dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/fuel_level"
+        android:id="@+id/fuel_level"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/lbl_fuel_level"
+        android:layout_alignParentLeft="true" />
 
 </RelativeLayout>

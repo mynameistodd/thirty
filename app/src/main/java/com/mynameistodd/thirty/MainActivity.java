@@ -36,6 +36,8 @@ import java.util.UUID;
 import pt.lighthouselabs.obd.commands.SpeedObdCommand;
 import pt.lighthouselabs.obd.commands.control.DtcNumberObdCommand;
 import pt.lighthouselabs.obd.commands.engine.ThrottlePositionObdCommand;
+import pt.lighthouselabs.obd.commands.fuel.FuelEconomyObdCommand;
+import pt.lighthouselabs.obd.commands.fuel.FuelLevelObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.EchoOffObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.LineFeedOffObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.ObdResetCommand;
@@ -43,6 +45,7 @@ import pt.lighthouselabs.obd.commands.protocol.OdbRawCommand;
 import pt.lighthouselabs.obd.commands.protocol.SelectProtocolObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.TimeoutObdCommand;
 import pt.lighthouselabs.obd.enums.ObdProtocols;
+import pt.lighthouselabs.obd.exceptions.MisunderstoodCommandException;
 import pt.lighthouselabs.obd.exceptions.NoDataException;
 
 
@@ -63,6 +66,8 @@ public class MainActivity extends Activity {
     private TextView throttlePosition;
     private TextView dtcs;
     private TextView vin;
+    private TextView fuelEconomy;
+    private TextView fuelLevel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +81,8 @@ public class MainActivity extends Activity {
         throttlePosition = (TextView) findViewById(R.id.throttle_position);
         dtcs = (TextView) findViewById(R.id.dtc);
         vin = (TextView) findViewById(R.id.vin);
+        fuelEconomy = (TextView) findViewById(R.id.fuel_economy);
+        fuelLevel = (TextView) findViewById(R.id.fuel_level);
 
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
@@ -209,6 +216,8 @@ public class MainActivity extends Activity {
                 ThrottlePositionObdCommand throttlePositionCmd = new ThrottlePositionObdCommand();
                 DtcNumberObdCommand dtcCmd = new DtcNumberObdCommand();
                 OdbRawCommand rawCmd = new OdbRawCommand("09 02");
+                FuelEconomyObdCommand fuelEconomyObdCommand = new FuelEconomyObdCommand();
+                FuelLevelObdCommand fuelLevelObdCommand = new FuelLevelObdCommand();
 
                 speedCmd.run(socket.getInputStream(), socket.getOutputStream());
                 throttlePositionCmd.run(socket.getInputStream(), socket.getOutputStream());
@@ -229,20 +238,42 @@ public class MainActivity extends Activity {
                     e.printStackTrace();
                 }
 
+                String fuelEconomyResult = "";
+                try {
+                    fuelEconomyObdCommand.run(socket.getInputStream(), socket.getOutputStream());
+                    fuelEconomyResult = String.valueOf(fuelEconomyObdCommand.getMilesPerUSGallon());
+                } catch (MisunderstoodCommandException e) {
+                    e.printStackTrace();
+                }
+
+                String fuelLevelResult = "";
+                try {
+                    fuelLevelObdCommand.run(socket.getInputStream(), socket.getOutputStream());
+                    fuelLevelResult = String.valueOf(fuelLevelObdCommand.getFuelLevel());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
                 Log.d(TAG, "Speed: " + speedCmd.getImperialSpeed());
                 Log.d(TAG, "Throttle: " + throttlePositionCmd.getPercentage());
                 Log.d(TAG, "DTCs: " + dtcFormattedResult);
                 Log.d(TAG, "VIN: " + rawFormattedResult);
+                Log.d(TAG, "Fuel Economy: " + fuelEconomyResult);
+                Log.d(TAG, "Fuel Level: " + fuelLevelResult);
 
                 speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
                 throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
                 dtcs.setText(String.valueOf(dtcFormattedResult));
                 vin.setText(String.valueOf(rawFormattedResult));
+                fuelEconomy.setText(String.valueOf(fuelEconomyResult));
+                fuelLevel.setText(String.valueOf(fuelLevelResult));
 
                 sendDiagnosticDataToParse(speedCmd.getName(), String.valueOf(speedCmd.getImperialSpeed()));
                 sendDiagnosticDataToParse(throttlePositionCmd.getName(), String.valueOf(throttlePositionCmd.getPercentage()));
                 sendDiagnosticDataToParse(dtcCmd.getName(), dtcFormattedResult);
                 sendDiagnosticDataToParse("VIN", rawFormattedResult);
+                sendDiagnosticDataToParse(fuelEconomyObdCommand.getName(), String.valueOf(fuelEconomyResult));
+                sendDiagnosticDataToParse(fuelLevelObdCommand.getName(), String.valueOf(fuelLevelResult));
 
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -323,7 +354,11 @@ public class MainActivity extends Activity {
         dd.saveEventually(new SaveCallback() {
             @Override
             public void done(ParseException e) {
-                Log.d(TAG, "Saved: " + name + "-" + value);
+                if (e != null) {
+                    e.printStackTrace();
+                } else {
+                    Log.d(TAG, "Saved: " + name + ": " + value);
+                }
             }
         });
     }
