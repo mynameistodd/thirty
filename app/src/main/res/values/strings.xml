@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">thirty</string>
+    <string name="app_name">Neutral</string>
     <string name="action_settings">Settings</string>
 
     <string name="lbl_device_address">Paired Device:</string>
     <string name="device_address">00:00:00:00:00:00</string>
     <string name="lbl_connected_status">Connected:</string>
     <string name="connected_status">Not Connected</string>
-    <string name="lbl_speed">Speed:</string>
-    <string name="speed">Unknown</string>
+    <string name="lbl_speed">Speed (mph)</string>
+    <string name="speed">55</string>
     <string name="lbl_throttle_position">Throttle Position:</string>
     <string name="throttle_position">Unknown</string>
-    <string name="lbl_dtc">DTCs:</string>
-    <string name="dtc">Unknown</string>
+    <string name="lbl_dtc">DTCs</string>
+    <string name="dtc">0</string>
     <string name="lbl_vin">VIN:</string>
     <string name="vin">Unknown</string>
-    <string name="lbl_fuel_economy">Fuel Economy:</string>
-    <string name="fuel_economy">Unknown</string>
-    <string name="lbl_fuel_level">Fuel Level:</string>
-    <string name="fuel_level">Unknown</string>
+    <string name="lbl_fuel_economy">Fuel Economy (mpg)</string>
+    <string name="fuel_economy">30</string>
+    <string name="lbl_fuel_level">Fuel Level (%)</string>
+    <string name="fuel_level">75</string>
 
     <string name="connect">Connect</string>
     <string name="refresh">Refresh</string>

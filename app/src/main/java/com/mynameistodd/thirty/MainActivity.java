@@ -74,7 +74,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         mContext = this;
         prefs = PreferenceManager.getDefaultSharedPreferences(getApplication());
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main_new);
         deviceAddress = (TextView) findViewById(R.id.device_address);
         connectedStatus = (TextView) findViewById(R.id.connected_status);
         speed = (TextView) findViewById(R.id.speed);
@@ -262,7 +262,7 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "Fuel Level: " + fuelLevelResult);
 
                 speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
-                throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
+                //throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
                 dtcs.setText(String.valueOf(dtcFormattedResult));
                 vin.setText(String.valueOf(rawFormattedResult));
                 fuelEconomy.setText(String.valueOf(fuelEconomyResult));
