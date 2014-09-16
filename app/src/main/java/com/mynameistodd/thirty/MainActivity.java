@@ -1,6 +1,5 @@
 package com.mynameistodd.thirty;
 
-import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
@@ -10,14 +9,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,7 +41,6 @@ import pt.lighthouselabs.obd.commands.protocol.LineFeedOffObdCommand;
 import pt.lighthouselabs.obd.commands.protocol.ObdResetCommand;
 import pt.lighthouselabs.obd.commands.protocol.OdbRawCommand;
 import pt.lighthouselabs.obd.commands.protocol.SelectProtocolObdCommand;
-import pt.lighthouselabs.obd.commands.protocol.TimeoutObdCommand;
 import pt.lighthouselabs.obd.enums.ObdProtocols;
 import pt.lighthouselabs.obd.exceptions.MisunderstoodCommandException;
 import pt.lighthouselabs.obd.exceptions.NoDataException;
@@ -166,15 +163,17 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void connect() {
+    private Boolean connect() {
+        Boolean connected = false;
         String deviceAddress = prefs.getString("device", "");
 
         if (deviceAddress != "") {
             if (socket != null && socket.isConnected()) {
                 try {
                     socket.close();
-                    connectedStatus.setText("Not Connected");
-                    mConnect.setTitle("Connect");
+//                    connectedStatus.setText("Not Connected");
+//                    mConnect.setTitle("Connect");
+                    connected = false;
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -189,14 +188,15 @@ public class MainActivity extends Activity {
                     socket.connect();
 
                     if (socket.isConnected()) {
-                        connectedStatus.setText("Connected!");
-                        mConnect.setTitle("Disconnect");
+//                        connectedStatus.setText("Connected!");
+//                        mConnect.setTitle("Disconnect");
+                        connected = true;
                         try {
                             new ObdResetCommand().run(socket.getInputStream(), socket.getOutputStream());
                             new EchoOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
                             new LineFeedOffObdCommand().run(socket.getInputStream(), socket.getOutputStream());
                             new SelectProtocolObdCommand(ObdProtocols.AUTO).run(socket.getInputStream(), socket.getOutputStream());
-                            refresh();
+//                            refresh();
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -206,6 +206,7 @@ public class MainActivity extends Activity {
                 }
             }
         }
+        return connected;
     }
 
     private void refresh() {
@@ -261,7 +262,7 @@ public class MainActivity extends Activity {
                 Log.d(TAG, "Fuel Economy: " + fuelEconomyResult);
                 Log.d(TAG, "Fuel Level: " + fuelLevelResult);
 
-                speed.setText(String.valueOf(speedCmd.getImperialSpeed()));
+                speed.setText(String.format("%.0f", speedCmd.getImperialSpeed()));
                 //throttlePosition.setText(String.valueOf(throttlePositionCmd.getPercentage()));
                 dtcs.setText(String.valueOf(dtcFormattedResult));
                 vin.setText(String.valueOf(rawFormattedResult));
@@ -284,6 +285,10 @@ public class MainActivity extends Activity {
             Toast.makeText(mContext, "Connect socket first!", Toast.LENGTH_LONG).show();
         }
     }
+
+//    private void updateTextView(TextView view, CharSequence text) {
+//
+//    }
 
     @Override
     protected void onPause() {
@@ -333,7 +338,7 @@ public class MainActivity extends Activity {
                 refresh();
                 return true;
             case R.id.action_connect:
-                connect();
+                new ConnectAsync().execute();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -362,4 +367,39 @@ public class MainActivity extends Activity {
             }
         });
     }
+
+    private class ConnectAsync extends AsyncTask<Void, Void, Boolean> {
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+            return connect();
+        }
+
+        @Override
+        protected void onPostExecute(Boolean connected) {
+            super.onPostExecute(connected);
+            if (connected) {
+                connectedStatus.setText("Connected!");
+                mConnect.setTitle("Disconnect");
+                //refresh();
+            } else {
+                connectedStatus.setText("Not Connected");
+                mConnect.setTitle("Connect");
+            }
+        }
+    }
+
+//    private class RefreshAsync extends AsyncTask<Void, Void, Void> {
+//
+//        @Override
+//        protected Void doInBackground(Void... params) {
+//            refresh();
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Void aVoid) {
+//            super.onPostExecute(aVoid);
+//        }
+//    }
 }
