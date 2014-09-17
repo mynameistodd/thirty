@@ -227,7 +227,7 @@ public class MainActivity extends Activity {
                 try {
                     dtcCmd.run(socket.getInputStream(), socket.getOutputStream());
                     dtcFormattedResult = dtcCmd.getFormattedResult();
-                } catch (NoDataException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -235,7 +235,7 @@ public class MainActivity extends Activity {
                 try {
                     rawCmd.run(socket.getInputStream(), socket.getOutputStream());
                     rawFormattedResult = rawCmd.getFormattedResult();
-                } catch (NoDataException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
@@ -243,7 +243,7 @@ public class MainActivity extends Activity {
                 try {
                     fuelEconomyObdCommand.run(socket.getInputStream(), socket.getOutputStream());
                     fuelEconomyResult = String.valueOf(fuelEconomyObdCommand.getMilesPerUSGallon());
-                } catch (MisunderstoodCommandException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
 
